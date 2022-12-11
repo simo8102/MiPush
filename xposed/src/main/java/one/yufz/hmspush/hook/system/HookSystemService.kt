@@ -35,7 +35,7 @@ class HookSystemService {
                 //com.android.server.SystemService#PHASE_BOOT_COMPLETED
                 if (args[0] == 1000) {
                     val context = thisObject.callMethod("getContext") as Context
-                    KeepHmsAlive(context).start()
+                    //KeepHmsAlive(context).start()
                     val stubClass = thisObject.get<Any>("mService").javaClass
                     hookPermission(stubClass)
                     hookSystemReadyFlag(stubClass)

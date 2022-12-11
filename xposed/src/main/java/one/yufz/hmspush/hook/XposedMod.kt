@@ -40,11 +40,11 @@ class XposedMod : IXposedHookLoadPackage {
             return
         }
 
-        if (lpparam.packageName == "com.android.systemui") {
-            HookSystemUI().hook(lpparam.classLoader)
-            return
-        }
+//        if (lpparam.packageName == "com.android.systemui") {
+//            HookSystemUI().hook(lpparam.classLoader)
+//            return
+//        }
 
-        FakeDevice.fake(lpparam)
+        // FakeDevice.fake(lpparam)
     }
 }
