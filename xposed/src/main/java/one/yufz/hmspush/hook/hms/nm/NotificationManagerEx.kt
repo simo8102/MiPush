@@ -23,13 +23,8 @@ object NotificationManagerEx {
     private val notificationManager: INotificationManager = createNotificationManager()
 
     private fun createNotificationManager(): INotificationManager {
-        return if (HookSystemService.isSystemHookReady) {
-            XLog.d(TAG, "use SystemNotificationManager")
-            SystemNotificationManager()
-        } else {
-            XLog.d(TAG, "use SelfNotificationManager")
-            SelfNotificationManager()
-        }
+        XLog.d(TAG, "use SelfNotificationManager")
+        return SelfNotificationManager()
     }
 
     fun areNotificationsEnabled(packageName: String, userId: Int): Boolean {

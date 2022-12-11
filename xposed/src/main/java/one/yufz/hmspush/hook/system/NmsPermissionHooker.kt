@@ -2,6 +2,7 @@ package one.yufz.hmspush.hook.system
 
 import android.app.AndroidAppHelper
 import android.app.Notification
+import android.app.NotificationChannelGroup
 import android.os.Binder
 import android.os.Build
 import de.robv.android.xposed.XC_MethodHook
@@ -20,7 +21,7 @@ object NmsPermissionHooker {
     }
 
     private fun tryHookPermission(packageName: String): Boolean {
-        if (packageName != HMS_PACKAGE_NAME && fromHms()) {
+        if (fromHms()) {
             Binder.clearCallingIdentity()
             return true
         }
@@ -49,6 +50,10 @@ object NmsPermissionHooker {
             findMethodExact(classINotificationManager, "getNotificationChannelForPackage", String::class.java, Int::class.java, String::class.java, Boolean::class.java)
                 .hook(hookPermission(0))
         }
+
+        //ParceledListSlice getNotificationChannelsForPackage(String pkg, int uid, boolean includeDeleted);
+        findMethodExact(classINotificationManager, "getNotificationChannelsForPackage", String::class.java, Int::class.java, Boolean::class.java)
+            .hook(hookPermission(0))
 
         //void enqueueNotificationWithTag(String pkg, String opPkg, String tag, int id, Notification notification, int userId)
         findMethodExact(classINotificationManager, "enqueueNotificationWithTag", String::class.java, String::class.java, String::class.java, Int::class.java, Notification::class.java, Int::class.java)
@@ -80,6 +85,22 @@ object NmsPermissionHooker {
 
         //ParceledListSlice getAppActiveNotifications(String callingPkg, int userId);
         findMethodExact(classINotificationManager, "getAppActiveNotifications", String::class.java, Int::class.java)
+            .hook(hookPermission(0))
+
+        //void updateNotificationChannelGroupForPackage(String pkg, int uid, in NotificationChannelGroup group);
+        findMethodExact(classINotificationManager, "updateNotificationChannelGroupForPackage", String::class.java, Int::class.java, NotificationChannelGroup::class.java)
+            .hook(hookPermission(0))
+
+        //NotificationChannelGroup getNotificationChannelGroupForPackage(String groupId, String pkg, int uid);
+        findMethodExact(classINotificationManager, "getNotificationChannelGroupForPackage", String::class.java, String::class.java, Int::class.java)
+            .hook(hookPermission(1))
+
+        //ParceledListSlice getNotificationChannelGroupsForPackage(String pkg, int uid, boolean includeDeleted);
+        findMethodExact(classINotificationManager, "getNotificationChannelGroupsForPackage", String::class.java, Int::class.java, Boolean::class.java)
+            .hook(hookPermission(0))
+
+        //void deleteNotificationChannelGroup(String pkg, String channelGroupId);
+        findMethodExact(classINotificationManager, "deleteNotificationChannelGroup", String::class.java, String::class.java)
             .hook(hookPermission(0))
     }
 }
