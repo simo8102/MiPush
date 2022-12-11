@@ -51,7 +51,7 @@ def getVersionName = { ->
 ext {
     gitVersionCode = getVersionCode()
     gitVersionName = getVersionName()
-    APPLICATION_ID = "one.yufz.hmspush"
+    APPLICATION_ID = "com.nihility.mipush"
 
     COMPILE_SDK = 33
     MIN_SDK = 26

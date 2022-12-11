@@ -13,7 +13,7 @@ dependencyResolutionManagement {
         jcenter()
     }
 }
-rootProject.name = "HMSPush"
+rootProject.name = "MIPush"
 include ':app'
 include ':xposed'
 include ':common'
