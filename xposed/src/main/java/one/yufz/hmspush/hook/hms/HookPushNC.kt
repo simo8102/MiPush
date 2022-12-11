@@ -1,20 +1,25 @@
 package one.yufz.hmspush.hook.hms
 
-import android.app.AndroidAppHelper
 import android.app.Notification
 import android.app.NotificationChannel
-import com.huawei.android.app.NotificationManagerEx
+import android.app.NotificationChannelGroup
+import android.service.notification.StatusBarNotification
+import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.XposedHelpers.ClassNotFoundError
 import one.yufz.hmspush.hook.XLog
+import one.yufz.hmspush.hook.hms.nm.SystemNotificationManager
 import one.yufz.xposed.findClass
 import one.yufz.xposed.hookMethod
+import java.lang.reflect.InvocationTargetException
 
 object HookPushNC {
     private const val TAG = "HookPushNC"
 
+    private const val TargetClass = "com.nihility.notification.NotificationManagerEx"
+
     fun canHook(classLoader: ClassLoader): Boolean {
         return try {
-            classLoader.findClass("com.huawei.hsf.notification.HwNotificationManager")
+            classLoader.findClass(TargetClass)
             true
         } catch (e: ClassNotFoundError) {
             false
@@ -24,61 +29,231 @@ object HookPushNC {
     fun hook(classLoader: ClassLoader) {
         XLog.d(TAG, "hookPushNC() called with: classLoader = $classLoader")
 
-        FakeHsf.hook(classLoader)
+//        FakeHsf.hook(classLoader)
 
-        PushSignWatcher.watch()
+//        PushSignWatcher.watch()
 
-        val classHwNotificationManager = classLoader.findClass("com.huawei.hsf.notification.HwNotificationManager")
-        val classHsfApi = classLoader.findClass("com.huawei.hsf.common.api.HsfApi")
+        val classNotificationManager = classLoader.findClass(TargetClass)
 
-        //change default priority of notification
-        classLoader.findClass("com.huawei.hms.pushnc.entity.PushSelfShowMessage").hookMethod("getPriority") {
-            replace { 1 }
-        }
-
-        classHwNotificationManager.hookMethod("isSupportHmsNc", classHsfApi) {
-            replace { true }
-        }
-
-        //boolean areNotificationsEnabled(HsfApi hsfApi, String packageName, int userId)
-        classHwNotificationManager.hookMethod("areNotificationsEnabled", classHsfApi, String::class.java, Int::class.java) {
-            replace { NotificationManagerEx.areNotificationsEnabled(args[1] as String, args[2] as Int) }
-        }
-
-        //boolean cancelNotification(HsfApi hsfApi, String packageName, int id, int userId)
-        classHwNotificationManager.hookMethod("cancelNotification", classHsfApi, String::class.java, Int::class.java, Int::class.java) {
+        //notify(
+        //        packageName: String,
+        //        tag: String?, id: Int, notification: Notification
+        //    )
+        classNotificationManager.hookMethod(
+            "notify",
+            String::class.java,
+            String::class.java,
+            Int::class.java,
+            Notification::class.java
+        ) {
             replace {
-                NotificationManagerEx.cancelNotification(AndroidAppHelper.currentApplication(), args[1] as String, args[2] as Int)
-                return@replace true
-            }
-
-        }
-        //boolean createNotificationChannels(HsfApi hsfApi, String packageName, int userId, List<NotificationChannel> list)
-        classHwNotificationManager.hookMethod("createNotificationChannels", classHsfApi, String::class.java, Int::class.java, List::class.java) {
-            replace {
-                NotificationManagerEx.createNotificationChannels(args[1] as String, args[2] as Int, args[3] as List<NotificationChannel>)
-                return@replace true
-            }
-        }
-        //boolean deleteNotificationChannel(HsfApi hsfApi, String packageName String channelId)
-        classHwNotificationManager.hookMethod("deleteNotificationChannel", classHsfApi, String::class.java, String::class.java) {
-            replace {
-                NotificationManagerEx.deleteNotificationChannel(args[1] as String, args[2] as String)
-                return@replace true
+                tryInvoke {
+                    SystemNotificationManager.notify(
+                        args[0] as String,
+                        args[1] as String?,
+                        args[2] as Int,
+                        args[3] as Notification
+                    )
+                }
             }
         }
 
-        //NotificationChannel getNotificationChannels(HsfApi hsfApi, String packageName, int userId, String channelId)
-        classHwNotificationManager.hookMethod("getNotificationChannels", classHsfApi, String::class.java, Int::class.java, String::class.java) {
-            replace { NotificationManagerEx.getNotificationChannel(args[1] as String, args[2] as Int, args[3] as String, false) }
+        //cancel(
+        //        packageName: String,
+        //        tag: String?, id: Int
+        //    )
+        classNotificationManager.hookMethod(
+            "cancel",
+            String::class.java,
+            String::class.java,
+            Int::class.java
+        ) {
+            replace {
+                tryInvoke {
+                    SystemNotificationManager.cancel(
+                        args[0] as String,
+                        args[1] as String?,
+                        args[2] as Int
+                    )
+                }
+            }
         }
 
-        //boolean notify(HsfApi hsfApi, String packageName, int id, int userId, Notification notification)
-        classHwNotificationManager.hookMethod("notify", classHsfApi, String::class.java, Int::class.java, Int::class.java, Notification::class.java) {
+        //createNotificationChannels(
+        //        packageName: String,
+        //        channels: List<NotificationChannel?>
+        //    )
+        classNotificationManager.hookMethod(
+            "createNotificationChannels",
+            String::class.java,
+            List::class.java
+        ) {
             replace {
-                NotificationManagerEx.notify(AndroidAppHelper.currentApplication(), args[1] as String, args[2] as Int, args[4] as Notification)
-                return@replace true
+                tryInvoke {
+                    SystemNotificationManager.createNotificationChannels(
+                        args[0] as String,
+                        args[1] as List<NotificationChannel>
+                    )
+                }
             }
+        }
+
+        //getNotificationChannel(
+        //        packageName: String,
+        //        channelId: String?
+        //    ): NotificationChannel?
+        classNotificationManager.hookMethod(
+            "getNotificationChannel",
+            String::class.java,
+            String::class.java
+        ) {
+            replace {
+                tryInvoke {
+                    return@replace SystemNotificationManager.getNotificationChannel(
+                        args[0] as String,
+                        args[1] as String
+                    ) as NotificationChannel?
+                }
+            }
+        }
+
+        //getNotificationChannels(
+        //        packageName: String
+        //    ): List<NotificationChannel?>?
+        classNotificationManager.hookMethod("getNotificationChannels", String::class.java) {
+            replace {
+                tryInvoke {
+                    return@replace SystemNotificationManager.getNotificationChannels(args[0] as String) as List<NotificationChannel?>?
+                }
+            }
+        }
+
+        //deleteNotificationChannel(
+        //        packageName: String,
+        //        channelId: String?
+        //    )
+        classNotificationManager.hookMethod(
+            "deleteNotificationChannel",
+            String::class.java,
+            String::class.java
+        ) {
+            replace {
+                tryInvoke {
+                    SystemNotificationManager.deleteNotificationChannel(
+                        args[0] as String,
+                        args[1] as String
+                    )
+                }
+            }
+        }
+
+        //createNotificationChannelGroups(
+        //        packageName: String,
+        //        groups: List<NotificationChannelGroup?>
+        //    )
+        classNotificationManager.hookMethod(
+            "createNotificationChannelGroups",
+            String::class.java,
+            List::class.java
+        ) {
+            replace {
+                tryInvoke {
+                    SystemNotificationManager.createNotificationChannelGroups(
+                        args[0] as String,
+                        args[1] as List<NotificationChannelGroup>
+                    )
+                }
+            }
+        }
+
+        //getNotificationChannelGroup(
+        //        packageName: String,
+        //        groupId: String?
+        //    ): NotificationChannelGroup?
+        classNotificationManager.hookMethod(
+            "getNotificationChannelGroup",
+            String::class.java,
+            String::class.java
+        ) {
+            replace {
+                tryInvoke {
+                    return@replace SystemNotificationManager.getNotificationChannelGroup(
+                        args[0] as String,
+                        args[1] as String
+                    ) as NotificationChannelGroup?
+                }
+            }
+        }
+
+        //getNotificationChannelGroups(
+        //        packageName: String
+        //    ): List<NotificationChannelGroup?>?
+        classNotificationManager.hookMethod("getNotificationChannelGroups", String::class.java) {
+            replace {
+                tryInvoke {
+                    return@replace SystemNotificationManager.getNotificationChannelGroups(args[0] as String) as List<NotificationChannelGroup?>?
+                }
+            }
+        }
+
+        //deleteNotificationChannelGroup(
+        //        packageName: String,
+        //        groupId: String?
+        //    )
+        classNotificationManager.hookMethod(
+            "deleteNotificationChannelGroup",
+            String::class.java,
+            String::class.java
+        ) {
+            replace {
+                tryInvoke {
+                    SystemNotificationManager.deleteNotificationChannelGroup(
+                        args[0] as String,
+                        args[1] as String
+                    )
+                }
+            }
+        }
+
+        //areNotificationsEnabled(
+        //        packageName: String
+        //    ): Boolean
+        classNotificationManager.hookMethod("areNotificationsEnabled", String::class.java) {
+            replace {
+                tryInvoke {
+                    return@replace SystemNotificationManager.areNotificationsEnabled(args[0] as String)
+                }
+            }
+        }
+
+        //getActiveNotifications(
+        //        packageName: String
+        //    ): Array<StatusBarNotification?>?
+        classNotificationManager.hookMethod("getActiveNotifications", String::class.java) {
+            replace {
+                tryInvoke {
+                    return@replace SystemNotificationManager.getActiveNotifications(args[0] as String) as Array<StatusBarNotification?>?
+                }
+            }
+        }
+
+    }
+
+    private inline fun <R> tryInvoke(invoke: () -> R): R {
+        try {
+            return invoke()
+        } catch (e: XposedHelpers.InvocationTargetError) {
+            XLog.e(TAG, "tryInvoke: ", e)
+            XLog.e(TAG, "tryInvoke targetException: ", e.cause)
+            throw e.cause ?: e
+        } catch (e: InvocationTargetException) {
+            XLog.e(TAG, "tryInvoke: ", e)
+            XLog.e(TAG, "tryInvoke targetException: ", e.targetException)
+            throw e.targetException ?: e
+        } catch (e: Throwable) {
+            XLog.e(TAG, "tryInvoke: ", e)
+            XLog.e(TAG, "tryInvoke cause: ", e.cause)
+            throw e.cause ?: e
         }
     }
 }

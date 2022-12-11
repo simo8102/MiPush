@@ -19,45 +19,11 @@ class HookHMS {
     }
 
     fun hook(lpparam: XC_LoadPackage.LoadPackageParam) {
-        //android.app.PendingIntent.getActivity(android.content.Context, int, android.content.Intent, int)
-        PendingIntent::class.java.hookMethod("getActivity", Context::class.java, Int::class.java, Intent::class.java, Int::class.java) {
-            doBefore {
-                val intent = args[2] as Intent
-                if (intent.component?.className == "com.huawei.hms.runtimekit.stubexplicit.PushEarthquakeActivity") {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-                }
-            }
+        if (HookPushNC.canHook(lpparam.classLoader)) {
+            HookPushNC.hook(lpparam.classLoader)
         }
 
-        DexClassLoader::class.java.hookAllConstructor {
-            doAfter {
-                val dexPath = args[0] as String
-                if (dexPath.contains("com.huawei.hms.push")) {
-                    XLog.d(TAG, "load push related dex path: $dexPath")
-
-                    val paths = dexPath.split("/")
-                    val version = paths.getOrNull(paths.size - 2)?.toIntOrNull() ?: 0
-
-                    XLog.d(TAG, "load push version: $version")
-
-                    val classLoader = thisObject as ClassLoader
-
-                    if (HookPushNC.canHook(classLoader)) {
-                        HookPushNC.hook(classLoader)
-                    } else {
-                        hookLegacyPush(classLoader)
-                    }
-                } else if (dexPath.contains("com.huawei.hms.runtimekit")) {
-                    RuntimeKitHook.hook(thisObject as ClassLoader)
-                    HookLegacyTokenRequest.hook(thisObject as ClassLoader)
-                }
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= 33) {
-            CursorWindow::class.java["sCursorWindowSize"] = 1024 * 1024 * 8
-        }
-
+        return;
         HookContentProvider().hook(lpparam.classLoader)
         fakeFingerprint(lpparam)
     }

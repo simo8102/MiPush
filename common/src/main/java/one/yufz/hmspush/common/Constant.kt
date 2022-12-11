@@ -8,8 +8,8 @@ const val VERSION_CODE = BuildConfig.VERSION_CODE
 
 const val ANDROID_PACKAGE_NAME = "android"
 
-const val HMS_PACKAGE_NAME = "com.huawei.hwid"
-const val HMS_CORE_PROCESS = "com.huawei.hwid.core"
+const val HMS_PACKAGE_NAME = "com.xiaomi.xmsf"
+const val HMS_CORE_PROCESS = "com.xiaomi.xmsf"
 const val HMS_CORE_SERVICE = "com.huawei.hms.core.service.HMSCoreService"
 const val HMS_CORE_SERVICE_ACTION = "com.huawei.hms.core.aidlservice"
 const val HMS_CORE_PUSH_ACTION_REGISTRATION = "com.huawei.android.push.intent.REGISTRATION"
