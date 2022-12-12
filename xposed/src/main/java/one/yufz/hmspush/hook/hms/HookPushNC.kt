@@ -8,6 +8,7 @@ import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.XposedHelpers.ClassNotFoundError
 import one.yufz.hmspush.hook.XLog
 import one.yufz.hmspush.hook.hms.nm.SystemNotificationManager
+import one.yufz.hmspush.hook.system.HookSystemService
 import one.yufz.xposed.findClass
 import one.yufz.xposed.hookMethod
 import java.lang.reflect.InvocationTargetException
@@ -16,6 +17,8 @@ object HookPushNC {
     private const val TAG = "HookPushNC"
 
     private const val TargetClass = "com.nihility.notification.NotificationManagerEx"
+
+    private val hookCheck = { HookSystemService.isSystemHookReady }
 
     fun canHook(classLoader: ClassLoader): Boolean {
         return try {
@@ -46,7 +49,7 @@ object HookPushNC {
             Int::class.java,
             Notification::class.java
         ) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     SystemNotificationManager.notify(
                         args[0] as String,
@@ -68,7 +71,7 @@ object HookPushNC {
             String::class.java,
             Int::class.java
         ) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     SystemNotificationManager.cancel(
                         args[0] as String,
@@ -88,7 +91,7 @@ object HookPushNC {
             String::class.java,
             List::class.java
         ) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     SystemNotificationManager.createNotificationChannels(
                         args[0] as String,
@@ -107,7 +110,7 @@ object HookPushNC {
             String::class.java,
             String::class.java
         ) {
-            replace {
+            replace() {
                 tryInvoke {
                     return@replace SystemNotificationManager.getNotificationChannel(
                         args[0] as String,
@@ -121,7 +124,7 @@ object HookPushNC {
         //        packageName: String
         //    ): List<NotificationChannel?>?
         classNotificationManager.hookMethod("getNotificationChannels", String::class.java) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     return@replace SystemNotificationManager.getNotificationChannels(args[0] as String) as List<NotificationChannel?>?
                 }
@@ -137,7 +140,7 @@ object HookPushNC {
             String::class.java,
             String::class.java
         ) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     SystemNotificationManager.deleteNotificationChannel(
                         args[0] as String,
@@ -156,7 +159,7 @@ object HookPushNC {
             String::class.java,
             List::class.java
         ) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     SystemNotificationManager.createNotificationChannelGroups(
                         args[0] as String,
@@ -175,7 +178,7 @@ object HookPushNC {
             String::class.java,
             String::class.java
         ) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     return@replace SystemNotificationManager.getNotificationChannelGroup(
                         args[0] as String,
@@ -189,7 +192,7 @@ object HookPushNC {
         //        packageName: String
         //    ): List<NotificationChannelGroup?>?
         classNotificationManager.hookMethod("getNotificationChannelGroups", String::class.java) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     return@replace SystemNotificationManager.getNotificationChannelGroups(args[0] as String) as List<NotificationChannelGroup?>?
                 }
@@ -205,7 +208,7 @@ object HookPushNC {
             String::class.java,
             String::class.java
         ) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     SystemNotificationManager.deleteNotificationChannelGroup(
                         args[0] as String,
@@ -219,7 +222,7 @@ object HookPushNC {
         //        packageName: String
         //    ): Boolean
         classNotificationManager.hookMethod("areNotificationsEnabled", String::class.java) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     return@replace SystemNotificationManager.areNotificationsEnabled(args[0] as String)
                 }
@@ -230,7 +233,7 @@ object HookPushNC {
         //        packageName: String
         //    ): Array<StatusBarNotification?>?
         classNotificationManager.hookMethod("getActiveNotifications", String::class.java) {
-            replace {
+            replace(hookCheck) {
                 tryInvoke {
                     return@replace SystemNotificationManager.getActiveNotifications(args[0] as String) as Array<StatusBarNotification?>?
                 }

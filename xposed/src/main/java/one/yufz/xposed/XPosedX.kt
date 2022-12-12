@@ -53,6 +53,9 @@ class MethodHook(callback: HookCallback) : XC_MethodHook() {
         super.beforeHookedMethod(param)
 
         context.replaceAction?.let {
+            if (context.needHook?.invoke() == false) {
+                return
+            }
             try {
                 param.result = it.invoke(param)
             } catch (t: Throwable) {
@@ -81,6 +84,9 @@ class HookContext(private val methodHook: MethodHook) {
     internal var replaceAction: ReplaceAction? = null
         private set
 
+    internal var needHook: (() -> Boolean)? = null
+        private set
+
     fun doBefore(action: HookAction) {
         this.beforeAction = action
     }
@@ -90,6 +96,11 @@ class HookContext(private val methodHook: MethodHook) {
     }
 
     fun replace(action: ReplaceAction) {
+        this.replaceAction = action
+    }
+
+    fun replace(hookCheck : () -> Boolean, action: ReplaceAction) {
+        this.needHook = hookCheck
         this.replaceAction = action
     }
 
