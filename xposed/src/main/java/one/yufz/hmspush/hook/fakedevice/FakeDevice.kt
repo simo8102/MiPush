@@ -33,21 +33,5 @@ object FakeDevice {
 
         val fakes = FakeDeviceConfig[lpparam.packageName] ?: Default
         fakes.forEach { it.newInstance().fake(lpparam) }
-
-        ContextWrapper::class.java.hookMethod("attachBaseContext", Context::class.java) {
-            doAfter {
-                XLog.d(TAG, "${thisObject}.attachBaseContext() called")
-                try {
-                    if (thisObject is Application) {
-                        unhook()
-                        if (BridgeWrap.isDisableSignature(thisObject as Context)) {
-                            FakeHmsSignature.hook(lpparam)
-                        }
-                    }
-                } catch (t: Throwable) {
-                    XLog.e(TAG, "disable signature error", t)
-                }
-            }
-        }
     }
 }
