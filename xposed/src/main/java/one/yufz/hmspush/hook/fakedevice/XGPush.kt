@@ -38,7 +38,12 @@ open class XGPush : IFakeDevice {
             XposedBridge.hookMethod(it, object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val method = param.method as Method
-                    if (method.name == "isBrandHuaWei") {
+
+                    if (method.name == "getMiuiVersionCode") {
+                        param.result = "13"
+                    } else if (method.name == "getMiuiVersionName") {
+                        param.result = "V130"
+                    } else if (method.name == "isBrandXiaoMi") {
                         param.result = true
                     } else if (method.returnType == Boolean::class.java) {
                         param.result = false
