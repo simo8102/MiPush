@@ -8,11 +8,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 private const val TAG = "FakeProperties"
 
 enum class Property(val entry: Pair<String, String>) {
-    EMUI_API("ro.build.hw_emui_api_level" to "21"),
-    EMUI_VERSION("ro.build.version.emui" to "EmotionUI_8.0.0"),
-    BRAND("ro.product.brand" to "Huawei"),
-    MANUFACTURER("ro.product.manufacturer" to "HUAWEI"),
-    MIUI_VERSION("ro.miui.ui.version.name" to "");
+    EMUI_API("ro.build.hw_emui_api_level" to ""),
+    EMUI_VERSION("ro.build.version.emui" to ""),
+    BRAND("ro.product.brand" to "Xiaomi"),
+    MANUFACTURER("ro.product.manufacturer" to "Xiaomi"),
+    MIUI_VERSION_NAME("ro.miui.ui.version.name" to "V130"),
+    MIUI_VERSION_CODE("ro.miui.ui.version.code" to "13"),
+    FLYME_VERSION_NAME("ro.build.flyme.version" to ""),
+    FLYME_VERSION_CODE("ro.flyme.version.id" to "");
 
     val key: String
         get() = entry.first
