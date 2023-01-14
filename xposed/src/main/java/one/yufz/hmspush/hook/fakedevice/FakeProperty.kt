@@ -15,7 +15,9 @@ enum class Property(val entry: Pair<String, String>) {
     MIUI_VERSION_NAME("ro.miui.ui.version.name" to "V130"),
     MIUI_VERSION_CODE("ro.miui.ui.version.code" to "13"),
     FLYME_VERSION_NAME("ro.build.flyme.version" to ""),
-    FLYME_VERSION_CODE("ro.flyme.version.id" to "");
+    FLYME_VERSION_CODE("ro.flyme.version.id" to ""),
+    COLOROS_BUILD_VERSION_OLD("ro.build.version.opporom" to ""),
+    COLOROS_BUILD_VERSION("ro.build.version.oplusrom" to "");
 
     val key: String
         get() = entry.first
