@@ -40,4 +40,4 @@
 ### License
 [GNU General Public License v3 (GPL-3)](http://www.gnu.org/copyleft/gpl.html).
 
-有些狗不遵守开源协议（非本项目），请**务必**遵守开源协议（此话来自MiPushFramework的README.md）
+有些狗不遵守开源协议（非本项目），请**务必**遵守开源协议 **（此话来自MiPushFramework的README.md）**
