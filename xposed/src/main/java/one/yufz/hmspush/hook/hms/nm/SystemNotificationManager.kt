@@ -137,7 +137,7 @@ object SystemNotificationManager {
                     getUid(packageName),
                     it
                 )
-            } catch (e: NullPointerException) {
+            } catch (e: Throwable) {
                 // ignore
                 // Attempt to invoke virtual method 'boolean android.app.NotificationChannelGroup.isBlocked()' on a null object reference
             }
