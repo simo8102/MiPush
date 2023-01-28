@@ -45,6 +45,6 @@ class XposedMod : IXposedHookLoadPackage {
 //            return
 //        }
 
-        // FakeDevice.fake(lpparam)
+         FakeDevice.fake(lpparam)
     }
 }
