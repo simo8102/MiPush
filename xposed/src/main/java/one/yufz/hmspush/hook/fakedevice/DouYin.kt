@@ -36,7 +36,7 @@ class DouYin : Common() {
                 val json = result as String
                 val obj = JSONObject(json)
                 val allowPushList = obj.getJSONArray("allow_push_list")
-                val newArray = tryInsertHuaweiChannel(allowPushList)
+                val newArray = tryInsertMiPushChannel(allowPushList)
                 obj.put("allow_push_list", newArray)
 
                 result = obj.toString()
@@ -47,13 +47,13 @@ class DouYin : Common() {
         return true
     }
 
-    private fun tryInsertHuaweiChannel(originArray: JSONArray): JSONArray {
+    private fun tryInsertMiPushChannel(originArray: JSONArray): JSONArray {
         val array = ArrayList<Int>()
         for (i in 0 until originArray.length()) {
             array.add(originArray.getInt(i))
         }
-        array.remove(7)
-        array.add(0, 7)
+        array.remove(1)
+        array.add(0, 1)
         return JSONArray(array)
     }
 }
