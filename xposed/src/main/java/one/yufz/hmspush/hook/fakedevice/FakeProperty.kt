@@ -17,7 +17,13 @@ enum class Property(val entry: Pair<String, String>) {
     FLYME_VERSION_NAME("ro.build.flyme.version" to ""),
     FLYME_VERSION_CODE("ro.flyme.version.id" to ""),
     COLOROS_BUILD_VERSION_OLD("ro.build.version.opporom" to ""),
-    COLOROS_BUILD_VERSION("ro.build.version.oplusrom" to "");
+    COLOROS_BUILD_VERSION("ro.build.version.oplusrom" to ""),
+
+    REGION_MIUI("ro.miui.region" to "CN"),
+    REGION_PRODUCT_LOCALE("ro.product.locale.region" to "CN"),
+    REGION_PRODUCT_COUNTRY("ro.product.country.region" to "CN"),
+    REGION_PERSIST_COUNTRY("persist.sys.country" to "CN"),
+    ;
 
     val key: String
         get() = entry.first
