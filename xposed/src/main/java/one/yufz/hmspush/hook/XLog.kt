@@ -7,11 +7,11 @@ import java.lang.reflect.Method
 
 object XLog {
     fun d(tag: String, message: String?) {
-        XposedBridge.log("[HMSPush]  $tag  $message")
+        XposedBridge.log("[MiPush]  $tag  $message")
     }
 
     fun i(tag: String, message: String?) {
-        XposedBridge.log("[HMSPush]  $tag  $message")
+        XposedBridge.log("[MiPush]  $tag  $message")
     }
 
     fun e(tag: String, message: String?, throwable: Throwable?) {
