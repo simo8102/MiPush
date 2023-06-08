@@ -3,8 +3,10 @@ package one.yufz.hmspush.hook.system
 import android.app.AndroidAppHelper
 import android.app.Notification
 import android.app.NotificationChannelGroup
+import android.content.Context
 import android.os.Binder
 import android.os.Build
+import android.os.Process
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.XposedHelpers.findMethodExact
@@ -12,13 +14,18 @@ import one.yufz.hmspush.common.ANDROID_PACKAGE_NAME
 import one.yufz.hmspush.common.HMS_PACKAGE_NAME
 import one.yufz.xposed.HookCallback
 import one.yufz.xposed.hook
+import one.yufz.xposed.hookMethod
 
 object NmsPermissionHooker {
     private fun fromHms() = try {
-        Binder.getCallingUid() == AndroidAppHelper.currentApplication().packageManager.getPackageUid(HMS_PACKAGE_NAME, 0)
+        Binder.getCallingUid() == getPackageUid(HMS_PACKAGE_NAME)
     } catch (e: Throwable) {
         false
     }
+
+    private fun getPackageUid(packageName: String) = getContext().packageManager.getPackageUid(packageName, 0)
+
+    private fun getContext(): Context = AndroidAppHelper.currentApplication()
 
     private fun tryHookPermission(packageName: String): Boolean {
         if (fromHms()) {
@@ -86,6 +93,34 @@ object NmsPermissionHooker {
         //ParceledListSlice getAppActiveNotifications(String callingPkg, int userId);
         findMethodExact(classINotificationManager, "getAppActiveNotifications", String::class.java, Int::class.java)
             .hook(hookPermission(0))
+
+        //ParceledListSlice getNotificationChannelsForPackage(String pkg, int uid, boolean includeDeleted);
+        findMethodExact(classINotificationManager, "getNotificationChannelsForPackage", String::class.java, Int::class.java, Boolean::class.java)
+            .hook(hookPermission(0))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            findClass("com.android.server.notification.PreferencesHelper", classINotificationManager.classLoader)
+                //public boolean deleteNotificationChannel(String pkg, int uid, String channelId)
+                .hookMethod("deleteNotificationChannel", String::class.java, Int::class.java, String::class.java) {
+                    doBefore {
+                        val packageName = args[0] as String
+                        if (Binder.getCallingUid() == Process.SYSTEM_UID) {
+                            args[1] = getPackageUid(packageName)
+                        }
+                    }
+                }
+        } else {
+            findClass("com.android.server.notification.RankingHelper", classINotificationManager.classLoader)
+                //public void deleteNotificationChannel(String pkg, int uid, String channelId)
+                .hookMethod("deleteNotificationChannel", String::class.java, Int::class.java, String::class.java) {
+                    doBefore {
+                        val packageName = args[0] as String
+                        if (Binder.getCallingUid() == Process.SYSTEM_UID) {
+                            args[1] = getPackageUid(packageName)
+                        }
+                    }
+                }
+        }
 
         //void updateNotificationChannelGroupForPackage(String pkg, int uid, in NotificationChannelGroup group);
         findMethodExact(classINotificationManager, "updateNotificationChannelGroupForPackage", String::class.java, Int::class.java, NotificationChannelGroup::class.java)
