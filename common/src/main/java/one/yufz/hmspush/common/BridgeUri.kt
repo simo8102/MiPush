@@ -16,7 +16,7 @@ enum class BridgeUri(val path: String) {
     }
 
     fun notifyContentChanged(context: Context) {
-        context.contentResolver.notifyChange(uri, null)
+        context.contentResolver.notifyChange(toUri(), null)
     }
 
     fun toUri(): Uri = Uri.parse(toString())
